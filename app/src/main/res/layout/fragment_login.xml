@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="user"
+            type="com.wang.wanandroidwithkotlin.vm.User" />
+        <variable
+            name="click"
+            type="com.wang.wanandroidwithkotlin.LoginFragment.ClickProxy" />
+    </data>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:text="@{user.name}"
+            android:id="@+id/tv_name"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+
+        <EditText
+            android:id="@+id/et_user_name"
+            android:text="@={user.name}"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+        <TextView
+            android:text="@{user.psd}"
+            android:id="@+id/tv_psd"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+
+        <EditText
+            android:id="@+id/et_user_psd"
+            android:text="@={user.psd}"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+
+        <Button
+            android:text="登录"
+            android:gravity="center"
+            android:onClick="@{()->click.doLogin(user)}"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+
+    </LinearLayout>
+
+
+</layout>
