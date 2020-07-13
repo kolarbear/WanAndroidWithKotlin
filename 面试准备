@@ -1,0 +1,337 @@
+Handler机制
+
+通过不断的在与之对应的MessageQueue中取Message对象来处理
+主要应用于线程间通信
+ 在子线程中使用 应该手动调用 Looper.prepare() Looper.loop()
+ 及在执行完成后调用Looper.quit()否则会造成内存泄漏
+
+主线程中的looper对象是在ActivityThread中的main()函数中创建的
+所以无需手动创建 可直接创建Handler对象进行使用
+runOnUiThread() view.post() 等方法都是通过Handler进行的线程切换
+
+为什么不会阻塞主线程？
+一个线程执行完代码就会销毁，正是因为死循环才确保主线程不会退出 一直存活
+真正会卡死主线程的的操作是在回调方法中操作时间过长，会导致掉帧，甚至ANR Looper.loop()方法本身不会导致应用卡死。
+
+主线程的消息循环机制是什么？
+在进入死循环之前便创建了新的线程binder线程(具体指ApplicationThread)用来接收 系统服务AMS发来的消息 然后通过Handler
+发给主线程
+Activity的生命周期都是依靠Looper.loop()方法
+
+ActivityThread通过ApplicationThread和AMS进行进程间通讯，
+AMS以进程间通信的方式完成ActivityThread的请求后会回调ApplicationThread中的Binder方法，
+然后ApplicationThread会向H发送消息，H
+收到消息后会将ApplicationThread中的逻辑切换到ActivityThread中去执行，
+即切换到主线程中去执行，
+这个过程就是，主线程的消息循环模型。
+
+Android性能优化 UI优化 内存泄漏 OOM 处理方案？
+
+Retrofit RxJAVA Glide Dagger2?
+
+Kotlin哪些需要注意的?关键字?
+
+设计模式?
+
+事件分发机制?
+
+MVP MvvM?
+
+
+Android UI 优化
+ vsync
+ 1.卡顿的主要原因是UI页面的过度绘制 overdraw
+  解决方法
+  1.可以打开开发者选项中的gpu过度绘制选项 然后减少不必要的background
+
+ 2.使用<include>标签 <viewstub>标签默认不会显示 也不会占用位置（viewstub所加载的布局是不可以使用merge标签的）
+  <merge>标签布局顶节点是Framelayout并且不需要设置background等。或者被include的时候，外层布局与父容器相同。
+
+ 3.自定义view减少布局嵌套 优化onDraw()方法
+
+ 4.减少布局中的view
+  a.使用SpannableStringBuilder替换多个Textview
+  b.使用LinearLayout自带的divider实现分割线
+  c.使用Space控件 onDraw是空实现因此只占位置不去渲染。
+
+ 掉帧检测方案
+  Looper  android 使用消息机制进行UI更新，UI线程有个Looper，在其loop方法中会不断取出message，
+  调用其绑定的Handler在UI线程执行，如果在handler的dispatchMessage方法里有耗时操作，就会发生卡顿。
+
+ 可以使用Choreographer(编舞者)协调动画、输入和绘图的时间(api>16)
+
+  Choreographer从显示子系统接收定时脉冲如垂直同步，然后安排下一帧的渲染工作。
+  开发过程中并不直接使用Choreograhper，但是我们可以使用Choreograhper.Framecallback回调的方式，获取每一帧的
+  时间，通过计算两帧的时间差，如果大于16ms,说明发生了丢帧。
+  //为Choreographer设置一个回调，当一帧开始渲染时触发。
+  Choreographer.getInstance().postFrameCallback(new Choreographer.FrameCallback() {
+            long lastFrameTimeNanos = 0;
+            long currentFrameTimeNanos = 0;
+
+            @Override
+            public void doFrame(long frameTimeNanos) {
+                if (lastFrameTimeNanos == 0) {
+                    lastFrameTimeNanos = frameTimeNanos;
+                }
+                currentFrameTimeNanos = frameTimeNanos;
+                long diffMs = TimeUnit.MILLISECONDS.convert(currentFrameTimeNanos - lastFrameTimeNanos, TimeUnit.NANOSECONDS);
+                lastFrameTimeNanos = currentFrameTimeNanos;
+                if (diffMs == 0) {
+                    diffMs = (long) 16.7;
+                }
+
+                if (isShowFPS) {
+                    long current = System.currentTimeMillis();
+                    if (current - mLastFPSRefreshTs > refreshInterval) {
+                        int fps = (int) (1000 / diffMs);
+                        refreshFPS(fps);
+                        mLastFPSRefreshTs = current;
+                    }
+                }
+
+                if (diffMs > 16.7f) {
+                    long droppedCount = (long) (diffMs / 16.7f);
+                    if (droppedCount > 1) {
+                        System.out.println("掉帧数 : " + droppedCount);
+                    }
+                }
+
+                if (UiBlockLogMonitor.getInstance().isMonitor()) {
+                    UiBlockLogMonitor.getInstance().stopMonitor();
+                }
+
+                if (isDetectContinue) {
+                    UiBlockLogMonitor.getInstance().startMonitor();
+                    Choreographer.getInstance().postFrameCallback(this);
+                }
+            }
+        });
+
+
+ 问题检测工具 systrace
+  systrace.py是一个命令行工具，位于.../sdk/platform-tools/systrace目录下。
+  在应用运行时，它可以帮我们收集和分析所有进程的计时信息，包含CPU调度、应用线程、磁盘活动等
+  Android内核信息，然后生成一份html报告。
+  systrace对检测应用UI表现非常有效，因为它可以帮你分析你的代码和帧率来试别出问题区域，然后提供可能的解决方案。
+  ok That need install PY (you know what I'm saying right?)
+
+ Traceview
+  Android sdk内置工具 以图形的形式展示代码的执行时间、次数及调用栈。
+
+ GPU过度绘制调试模式
+
+ 主线程耗时操作
+	1json数据解析耗时
+	2文件操作(获取所属渠道名称)
+	3Binder通信
+	4正则匹配
+	5相机操作：初始化、预览、停止预览、释放
+	6组件初始化(推送)
+	7循环删除、创建View
+	8Webview首次初始化
+	处理方案 异步-》缓存-》替代方案-》保持原状
+
+ 主线程挂起
+  1异步线程与主线程竞争cpu资源
+  Thread.currentThread().setPriority() Process.setThreadPriority()
+  Process.setThreadPriority(Process.myTid(), Process.THREAD_PRIORITY_BACKGROUND);
+  同时提高主线程优先级 Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY);
+  2频繁GC使主线程挂起 -》后续内存优化
+ 冷白屏启动
+  设置欢迎页logo
+Android 内存优化
+
+ 避免出现内存泄漏、内存溢出(OOM)、内存空间占用过大等问题最终导致crash
+ Android内存管理机制分为三层
+     其中负责进程内存的有
+	Application Framework
+	Linux内核
+     负责对象变量内存的是 Dalvik虚拟机
+  Android的内存管理=对进程、对象、变量进行内存分配与回收
+ 针对进程的内存策略
+  a.内存分配策略
+   由ActivityManagerService集中管理所有进程的内存分配
+  b.回收策略
+   步骤一 Application Framework 决定回收的进程类型
+    Android中的进程是托管的；当进程空间紧张时，会按进程优先级从低到高的顺序进行自动回收。
+     空->后台->服务->可见->前台
+    步骤二 Linux内核真正回收具体进程
+     1.ActivityManagerService对所有进程进行评分(评分放到变量adj中)
+     2.更新评分到Linux内核
+     3.由Linux内核完成真正的回收
+  内存回收策略
+   由Java垃圾回收器GC的内存释放=垃圾回收算法
+    1主要有标记清除法
+    2复制算法
+    3标记-整理算法
+    4分代收集算法
+ 常见的内存问题&解决方案
+   1内存泄漏
+   2内存抖动
+   3图片Bitmap相关
+   4代码质量&数量
+   5日常不正确使用
+     内存泄漏原因->本该回收的内存没有回收->持有引用者的生命周期>被引用者的生命周期
+      常见情况
+       1集合类
+       2Static关键字修饰的成员变量
+       3非静态内部类/匿名类
+       4资源对象使用后未关闭
+      内存抖动原因
+       频繁创建大量临时的小对象
+       导致频繁GC造成卡顿 导致内存碎片 导致无法分配内存 导致OOM
+       应避免创建大量临时的小对象
+      图片Bitmap优化
+       1使用完毕后释放图片资源 Bitmap.recycle() 采用软引用
+       2根据分辨率适配&缩放图片 设置多套图片资源 BitmapFactory.decodeResource()
+       3按需选择合适的编码方式
+       4设置图片缓存  三级缓存
+
+
+      代码质量&数量
+       a1减少不必要的类&对象2减少引用不必要的库3使用代码混淆4慎用sp
+       b1数据结构 使用性能高的数据结构
+       c1使用占用内存小的数据类型 避免使用枚举
+       d数据对象引用 根据场景选择不同的引用类型
+        1强引用：不希望被回收
+	2软引用：缓存机制（即实现内存敏感的数据缓存，如图片，网页缓存等）
+	3弱引用：防止内存泄漏保护对象引用
+	4虚引用：跟踪对象被垃圾回收器回收的活动
+
+
+
+     常见使用
+      优化lisview
+      少用service
+      少用依赖注入框架
+      少用多进程
+      largeHeap = 'true' 通知虚拟机获取更大的内存
+
+
+     额外小技巧
+	1获取当前可使用的内存大小ActivityManager.getMemoryClass()方法可获取当前应用可用的内存大小
+	2获取当前的内存使用情况 onTrimMemory()获取应用程序当前内存使用情况 以内存级别进行试别(android4.0后)
+	3当应用程序变为隐藏状态时，释放内存。 当应用程序跳转到其他app&试图不再显示时
+	  具体操作实现当前activity的onTrimMemory()方法 当用户离开视图时会得到通知
+	  若返回的参数=TRIM_MEMORY_UI_HIDDEN即代表视图变为隐藏状态，则可释放视图所占资源。
+
+     辅助内存优化分析工具
+      MAT(Memory Analysis Tools)
+      HeapViewer
+      Allocation Tracker
+      Memory Monitor
+      LeakCanary
+
+
+
+
+
+自定义view过程
+
+	重写构造方法
+	onMeasure()测量-> onLayout()布局-> onDraw()绘制
+
+
+事件分发机制
+
+
+
+
+Retrofit+Okhttp3原理
+
+
+
+
+RxJava使用
+
+
+
+
+Glide使用
+
+
+
+
+
+Dagger2使用及原理
+
+
+
+
+
+
+设计模式(单例、建造者、工厂、享元)
+
+
+
+
+
+
+
+Kotlin语言
+
+   object 指 单例对象 companion object 伴生对象 一个类中只能有一个
+   data 指纯数据类 构造函数最少有一个参数
+
+
+ 高阶函数 (typealias 别名 声明函数类型)
+  1.T.run 执行block()并 返回block() 不会返回调用对象
+  2.T.apply 执行完block() 返回T对象本身
+  3.T.let 会执行block(T) 返回block(T)
+  4.T.also 会执行block(T) 并返回T对象本身
+  5.with(T){T.block()} 会执行T.block() 并返回最后一次 T.block()的返回值
+
+
+
+
+
+Recyclerview缓存机制
+
+
+
+
+
+MVC MVP MVVM
+
+
+
+
+
+
+Jetpack???
+ AAC Android Architecture Components
+ DataBinding Navigation LiveData Room Paging ViewModel WorkManager LifeCycles
+
+
+
+
+
+HashMap底层实现
+
+
+
+
+
+内存模型 GC原理
+
+
+
+
+
+
+组件化 插件化
+
+
+
+屏幕适配
+ 最小宽度限定符 sw-375dp
+ 头条适配方案
+
+DataBinding
+ 注解  BindingAdapter BindingConversion
+
+
+
+
+
+
