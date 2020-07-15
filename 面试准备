@@ -285,8 +285,10 @@ Kotlin语言
 
  Java泛型 不支持 协变  逆变
 
- DSL...
-
+ Kotlin DSL特性支持...
+    扩展函数  扩展属性
+    带接收者的lambda表达式（高阶函数）
+    invoke函数调用约定
 
 
 Recyclerview缓存机制
@@ -325,7 +327,9 @@ HashMap底层实现
 
 
 
-组件化 插件化
+组件化
+
+插件化
 
 
 
@@ -338,6 +342,316 @@ DataBinding
 
 
 
+ Webview与X5Webview区别
 
+
+js交互方式
+
+内存泄漏有哪些
+
+JVM内存模式
+
+Kotlin协程 好处 底层原理？
+
+静态内部类会不会内存泄漏？
+  不会 因为内存不在一块
+
+腾讯X5优缺点？
+
+Android 10新特性 及适配方案
+ 1 全新的兼容库 androidX
+ 2 存储方式发生改变 分区存储 应用只能访问应用私有目录及共享目录 且不能访问由其他应用创建的非媒体文件
+  2.1 受影响的变更
+    2.1.1图片位置信息获取不到 因为位置对于用户来说属于敏感信息
+    在manifest中申请ACCESS_MEDIA_LOCATION
+    调用MediaStore setRequireOriginal(Uri uri)接口更新图片Uri
+    2.1.2访问数据
+     MediaStore.Files应用分区存储模式下，MediaStore.Files 集合只能够获取媒体文件信息(图片、音频、视频)，
+     获取不到非media(pdf、office、doc、txt等)文件。
+    2.1.3File Path路径访问受影响接口
+     开启分区存储新特性， Andrioid 10不能够通过File Path路径直接访问共享目录下资源，
+     以下接口通过File 路径操作文件资源，功能会受到影响，应用需要使用MediaStore或者SAF方式访问。
+
+  2.2兼容模式
+   应用未完成外部存储适配工作，可以临时以兼容模式运行， 兼容模式下应用申请存储权限，即可拥有外部存储完整目录访问权限，
+   通过Android10之前文件访问方式运行，以下两种方法设置应用以兼容模式运行。
+
+   2.2.1 AndroidManifest中申明
+    targetSDK r大于等于Android 10（API level 29）， 在manifest中设置requestLegacyExternalStorage属性为true。
+
+   2.2.2、判断兼容模式接口
+       //返回值
+       //true : 应用以兼容模式运行
+       //false：应用以分区存储特性运行
+       Environment.isExternalStorageLegacy();
+
+
+   2.3 适配方案
+        分区存储适配包含文件迁移以及文件访问兼容性适配两个部分：
+
+        1）文件迁移
+
+        文件迁移是将应用共享目录文件迁移到应用私有目录或者Android10要求的media集合目录。
+
+        针对只有应用自己访问并且应用卸载后允许删除的文件，需要迁移文件到应用私有目录文件，可以通过File path方式访问文件资源，降低适配成本。
+
+        允许其他应用访问，并且应用卸载后不允许删除的文件，文件需要存储在共享目录，应用可以选择是否进行目录整改，将文件迁移到Android10要求的media集合目录。
+
+
+        2）文件访问兼容性
+
+        共享目录文件不能够通过File path方式读取，需要使用MediaStore API或者Storage Access Framework框架进行访问。
+
+
+   2.4 适配指导
+
+   AndroidQ中使用ContentResolver进行文件的增删改查。
+
+    1）获取(创建)私有目录下的文件夹
+
+    //在自身目录下创建apk文件夹
+    File apkFile = context.getExternalFilesDir("apk");
+
+    2）创建私有目录文件
+
+    生成需要下载的路径，通过输入输出流读取写入
+
+    String apkFilePath = context.getExternalFilesDir("apk").getAbsolutePath();
+    File newFile = new File(apkFilePath + File.separator + "demo.apk");
+    OutputStream os = null;
+    try {
+        os = new FileOutputStream(newFile);
+        if (os != null) {
+            os.write("file is created".getBytes(StandardCharsets.UTF_8));
+            os.flush();
+        }
+    } catch (IOException e) {
+    } finally {
+        try {
+            if (os != null) {
+            os.close();
+        }catch (IOException e1) {
+        }
+    }
+
+    3）创建共享目录文件夹
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        ContentResolver resolver = context.getContentResolver();
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+        values.put(MediaStore.Downloads.DESCRIPTION, fileName);
+        //设置文件类型
+        values.put(MediaStore.Downloads.MIME_TYPE, "application/vnd.android.package-archive");
+        //注意MediaStore.Downloads.RELATIVE_PATH需要targetVersion=29,
+        //故该方法只可在Android10的手机上执行
+        values.put(MediaStore.Downloads.RELATIVE_PATH, "Download" + File.separator + "apk");
+        Uri external = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+        Uri insertUri = resolver.insert(external, values);
+        return insertUri;
+    }else{
+        ...
+    }
+
+    4）在共享目录指定文件夹下创建文件
+
+    主要是在公共目录下创建文件或文件夹拿到本地路径uri，不同的Uri，可以保存到不同的公共目录中。接下来使用输入输出流就可以写入文件。
+
+    重点：AndroidQ中不支持file://类型访问文件，只能通过uri方式访问。
+
+    /**
+      * 创建图片地址uri,用于保存拍照后的照片 Android 10以后使用这种方法
+      */
+    private Uri  createImageUri() {
+        String status = Environment.getExternalStorageState();
+        // 判断是否有SD卡,优先使用SD卡存储,当没有SD卡时使用手机存储
+        if (status.equals(Environment.MEDIA_MOUNTED)) {
+            return getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
+        } else {
+            return getContext().getContentResolver().insert(MediaStore.Images.Media.INTERNAL_CONTENT_URI, new ContentValues());
+        }
+    }
+
+    5）通过MediaStore API读取公共目录下的文件
+
+    if (cursor != null && cursor.moveToFirst()) {
+        do {
+            ...
+            int _id = cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+            Uri imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, _id);
+            ...
+        } while (!cursor.isLast() && cursor.moveToNext());
+    } else {
+    ...
+    }
+
+    // 通过uri获取bitmap
+    public Bitmap getBitmapFromUri(Context context, Uri uri) {
+        ParcelFileDescriptor parcelFileDescriptor = null;
+        FileDescriptor fileDescriptor = null;
+        Bitmap bitmap = null;
+        try {
+            parcelFileDescriptor = context.getContentResolver().openFileDescriptor(uri, "r");
+            if (parcelFileDescriptor != null && parcelFileDescriptor.getFileDescriptor() != null) {
+                fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+                //转换uri为bitmap类型
+                bitmap = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                if (parcelFileDescriptor != null) {
+                parcelFileDescriptor.close();
+            }catch (IOException e) {
+            }
+        }
+        return bitmap;
+    }
+
+    6）使用MediaStore删除文件
+
+    context.getContentResolver().delete(fileUri, null, null);
+
+
+ 3 设备ID
+
+    3.1 IMEI等设备信息
+
+    从Android10开始普通应用不再允许请求权限android.permission.READ_PHONE_STATE。而且，无论你的App是否适配过Android Q（既targetSdkVersion是否大于等于29），均无法再获取到设备IMEI等设备信息。
+
+    受影响的API：
+
+    Build.getSerial();
+    TelephonyManager.getImei();
+    TelephonyManager.getMeid()
+    TelephonyManager.getDeviceId();
+    TelephonyManager.getSubscriberId();
+    TelephonyManager.getSimSerialNumber();
+
+    targetSdkVersion<29 的应用，其在获取设备ID时，会直接返回null
+
+    targetSdkVersion>=29 的应用，其在获取设备ID时，会直接抛出异常SecurityException
+
+
+    如果您的App希望在Android 10以下的设备中仍然获取设备IMEI等信息，可按以下方式进行适配：
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"
+            android:maxSdkVersion="28"/>
+
+    3.2 Mac地址随机分配
+
+    从Android10开始，默认情况下，在搭载 Android 10 或更高版本的设备上，系统会传输随机分配的 MAC 地址。（即从Android 10开始，普通应用已经无法获取设备的真正mac地址，标识设备已经无法使用mac地址）
+
+    3.3 如何标识设备唯一性
+
+    3.3.1 Google解决方案：如果您的应用有追踪非登录用户的需求，可用ANDROID_ID来标识设备。
+
+    ANDROID_ID生成规则：签名+设备信息+设备用户
+
+    ANDROID_ID重置规则：设备恢复出厂设置时，ANDROID_ID将被重置
+        String androidId = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+
+    3.3.2 信通院统一SDK（OAID）
+
+    统一标识依据电信终端产业协会(TAF)、移动安全联盟(MSA)联合推 出的团体标准《移动智能终端补充设备标识规范》开发，移动智能终端补充设备标识体系统一调用 SDK 集成设备厂商提供的接口，并获得主流设备厂商的授权。
+
+    移动安全联盟(MSA)组织中国信息通信研究院(以下简称“中国信通院”)与终端生产企业、互联网企业共同研究制定了“移动智能终端补充设备标识体系”，定义了移动智能终端补充设备标识体系的体系架构、功能要求、接口要求以及安全要求，使设备生产企业统一开发接口，为移动应用开发者提供统一调用方式，方便移动应用接入，降低维护成本。
+
+    1）SDK获取
+
+    MSA 统一 SDK 下载地址：
+    移动安全联盟官网，http://www.msa-alliance.cn/
+
+    2）接入方式
+
+    解压miit_mdid_sdk_v1.0.13.rar，
+
+    把 miit_mdid_1.0.13.aar 拷贝到项目中，并设置依赖。
+
+    将 supplierconfig.json 拷贝到项目 assets 目录下，并修改里边对应 内容，特别是需要设置 appid 的部分。需要设置 appid 的部分需要去对应的厂 商的应用商店里注册自己的 app。
+
+
+    {
+      "supplier":{
+        "xiaomi":{
+          "appid":"***"
+        },
+        "huawei":{
+          "appid":"***"
+        }
+        ...
+      }
+    }
+
+    在初始化方法中调用JLibrary.InitEntry
+
+
+    try {
+        JLibrary.InitEntry(FoundationContextHolder.getContext());
+    } catch (Throwable e) {
+    }
+
+    实例化MSA SDK
+
+
+    public static void initMSASDK(Context context){
+        int code = 0;
+        try {
+            code =  MdidSdkHelper.InitSdk(context,true,listener);
+            if (code == ErrorCode.INIT_ERROR_MANUFACTURER_NOSUPPORT){//1008611,不支持的厂商
+            }else if (code == ErrorCode.INIT_ERROR_DEVICE_NOSUPPORT){//1008612,不支持的设备
+            }else if (code == ErrorCode.INIT_ERROR_LOAD_CONFIGFILE){//1008613,加载配置文件失败
+            }else if (code == ErrorCode.INIT_ERROR_RESULT_DELAY){//1008614,信息将会延迟返回，获取数据可能在异步线程，取决于设备
+            }else if (code == ErrorCode.INIT_HELPER_CALL_ERROR){//1008615,反射调用失败
+            }
+            //code可记录异常供分析
+        }catch (Throwable throwable){
+        }
+    }
+
+    static IIdentifierListener listener = new IIdentifierListener() {
+        @Override
+        public void OnSupport(boolean support, IdSupplier idSupplier) {
+            try{
+                isSupport  = support;
+                if (null != idSupplier && isSupport){
+                    //是否支持补充设备标识符获取
+                    oaid = idSupplier.getOAID();
+                    aaid = idSupplier.getAAID();
+                    vaid = idSupplier.getVAID();
+                }else {
+                    ...
+                }
+            }catch (Exception e){
+            }
+        }
+    };
+
+    通过以上方法获取到OAID等设备标识之后，即可作为唯一标识使用。
+
+    4、明文HTTP限制
+
+
+    当SDK版本大于API 28时，默认限制了HTTP请求，并出现相关日志“java.net.UnknownServiceException: CLEARTEXT communication to xxx not permitted by network security policy“。
+
+    该问题有两种解决方案：
+
+    1）在AndroidManifest.xml中Application节点添加如下代码
+
+    <application android:usesCleartextTraffic="true">
+
+    2）在res目录新建xml目录，已建的跳过 在xml目录新建一个xml文件network_security_config.xml，然后在AndroidManifest.xml中Application添加如下节点代码。
+
+    android:networkSecurityConfig="@xml/network_config"
+
+    network_config.xml（命名随机）
+
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <network-security-config>
+        <base-config cleartextTrafficPermitted="true" />
+    </network-security-config>
 
 
