@@ -35,7 +35,9 @@ class LoginFragment : Fragment() {
 
     inner class ClickProxy(private val fragment: LoginFragment){
 
-        public fun doLogin(user: User){
+         fun doLogin(user: User){
+
+            val javaClass = user.javaClass
 
 //           Log.e("ClickProxy",user.name)
             Toast.makeText(fragment.context,"${user.name.get()}登录成功~",Toast.LENGTH_SHORT).show()
