@@ -8,15 +8,15 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
+
+
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
+
 import com.wang.wanandroidwithkotlin.adapter.HomeAdapter
 import com.wang.wanandroidwithkotlin.databinding.FragmentHomeBinding
-import com.wang.wanandroidwithkotlin.plugin.Person
-import com.wang.wanandroidwithkotlin.plugin.nullableStrTest
+
 import com.wang.wanandroidwithkotlin.plugin.suffix
 import com.wang.wanandroidwithkotlin.vm.Article
 import com.wang.wanandroidwithkotlin.vm.HomeViewModel
@@ -52,7 +52,9 @@ class HomeFragment : Fragment() {
             binding.adapter?.submitList(it)
         })
 
+
         val vm = ViewModelProvider(this).get(HomeViewModel::class.java)
+
 
         binding.vm = HomeViewModel(mutableLiveData)
 
@@ -143,6 +145,7 @@ class HomeFragment : Fragment() {
 
 
     }
+
     //类型上界
     fun <T: Comparable<T>> gt(x:T,y:T):Boolean{
         return x>y

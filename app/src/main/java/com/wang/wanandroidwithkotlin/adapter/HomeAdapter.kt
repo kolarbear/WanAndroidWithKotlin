@@ -9,6 +9,11 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+<<<<<<< HEAD
+import com.chad.library.adapter.base.BaseQuickAdapter
+import com.chad.library.adapter.base.viewholder.BaseViewHolder
+=======
+>>>>>>> 2b225d626e010c990d2b30a27f7e5caef76aa488
 import com.wang.wanandroidwithkotlin.R
 import com.wang.wanandroidwithkotlin.databinding.ItemListBinding
 import com.wang.wanandroidwithkotlin.vm.Article

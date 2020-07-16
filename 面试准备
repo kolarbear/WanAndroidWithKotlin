@@ -281,6 +281,7 @@ Kotlin语言
   4.T.also 会执行block(T) 并返回T对象本身
   5.with(T){T.block()} 会执行T.block() 并返回最后一次 T.block()的返回值
 
+
  扩展函数 扩展属性
 
  Java泛型 不支持 协变  逆变
@@ -291,6 +292,7 @@ Kotlin语言
     invoke函数调用约定
 
 
+
 Recyclerview缓存机制
 
 
@@ -299,9 +301,13 @@ Recyclerview缓存机制
 
 MVC MVP MVVM
 
+<<<<<<< HEAD
+
+=======
 Model代表数据层
 View代表UI层
 ViewModel代表中间的两层之间的桥梁
+>>>>>>> 2b225d626e010c990d2b30a27f7e5caef76aa488
 
 
 
