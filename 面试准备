@@ -233,12 +233,17 @@ Android 内存优化
 
 
 事件分发机制
+ activity(phoneWindow)
+ dispatchTouchEvent -> onTouchEvent
+  -> viewgroup ->dispatchTouchEvent -> onIntercept -> onTouchEvent
+  -> view ->dispatchTouchEvent -> onTouchEvent
 
 
-
-
-Retrofit+Okhttp3原理
-
+Retrofit+Okhttp3+RxJava
+ Retrofit通过动态代理的方式 拿到ApiService对象 然后通过注解的方式拿到request所需要的参数 并整合成
+ 完整的request 然后发给ok
+ ok使用责任链模式 可以添加自定义的网络拦截器 实现全局添加请求头等参数 最后加入请求队列 发起请求。
+ RxJava主要用来对返回的数据进行处理变换 采用观察者模式 以流的形式就行数据的处理 包括线程切换等。
 
 
 
@@ -274,7 +279,7 @@ Kotlin语言
    data 指纯数据类 构造函数最少有一个参数
 
 
- 高阶函数 (typealias 别名 声明函数类型)
+ 高阶函数 (type alias 别名 声明函数类型)
   1.T.run 执行block()并 返回block() 不会返回调用对象
   2.T.apply 执行完block() 返回T对象本身
   3.T.let 会执行block(T) 返回block(T)
@@ -300,14 +305,10 @@ Recyclerview缓存机制
 
 
 MVC MVP MVVM
-
-<<<<<<< HEAD
-
-=======
 Model代表数据层
 View代表UI层
 ViewModel代表中间的两层之间的桥梁
->>>>>>> 2b225d626e010c990d2b30a27f7e5caef76aa488
+
 
 
 
@@ -321,7 +322,7 @@ Jetpack???
 
 
 HashMap底层实现
-
+ 红黑树
 
 
 
@@ -334,9 +335,9 @@ HashMap底层实现
 
 
 组件化
-
+ 其实就是分层
 插件化
-
+ Hook技术什么的...
 
 
 屏幕适配
@@ -665,5 +666,9 @@ Android 10新特性 及适配方案
     </network-security-config>
 
 
+ Dagger2的依赖注入与ButterKnife的有什么区别？
 
+ Dagger2的@Singleston与自己手写的单例有什么区别？
+
+ Android9.0与10.0分别更新了什么
 
