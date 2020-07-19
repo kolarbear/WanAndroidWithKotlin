@@ -342,10 +342,14 @@ HashMap底层实现
 
 屏幕适配
  最小宽度限定符 sw-375dp
+
  头条适配方案
   动态更改density 达到适配的效果
   优点 接入成本低 效果最好
   缺点 对老项目不太友好
+
+ 头条适配方案 动态修改density的值 确保
+
 
 DataBinding
  注解  BindingAdapter BindingConversion
@@ -353,7 +357,7 @@ DataBinding
 
 
  Webview与X5Webview区别
-
+ 当然是内核不同了，X5是腾讯自己写的内核，所以每次启动时需要进行初始化，需要下载。如果不成功就是用的系统内核
 
 js交互方式
 
@@ -367,7 +371,7 @@ Kotlin协程 好处 底层原理？
 静态内部类会不会内存泄漏？
   不会 因为内存不在一块
 
-腾讯X5优缺点？
+
 
 Android 10新特性 及适配方案
  1 全新的兼容库 androidX
