@@ -673,6 +673,6 @@ Android 10新特性 及适配方案
  Dagger2的依赖注入与ButterKnife的有什么区别？
 
  Dagger2的@Singleston与自己手写的单例有什么区别？
-
+  如果没有在application中进行统一获取 app component的话 会是局部单例  要全局单例需要获取application中统一的app component
  Android9.0与10.0分别更新了什么
 

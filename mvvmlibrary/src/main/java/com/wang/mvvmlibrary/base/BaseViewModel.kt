@@ -9,7 +9,7 @@ import com.wang.mvvmlibrary.State
  * author：kolarbear
  * create time：2020年7月17日, 0017 14:08
  */
-class BaseViewModel<R : BaseRepository> : ViewModel() {
+open class BaseViewModel<R : BaseRepository> : ViewModel() {
 
     val loadState by lazy { MutableLiveData<State>() }
 
