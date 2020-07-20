@@ -1,11 +1,16 @@
 package com.wang.wanandroidwithkotlin.vm
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.wang.mvvmlibrary.base.BaseViewModel
+import com.wang.wanandroidwithkotlin.repository.HomeRepository
 
 /**
  * Created by Koala on 2020/7/8.
  *
  * Description:
  */
-class HomeViewModel(val list: MutableLiveData<List<Article>>) : ViewModel()
+class HomeViewModel : BaseViewModel<HomeRepository>(){
+
+    val list: MutableLiveData<List<Article>> = MutableLiveData()
+
+}

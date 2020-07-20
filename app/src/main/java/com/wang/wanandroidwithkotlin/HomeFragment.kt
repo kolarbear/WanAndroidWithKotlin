@@ -3,6 +3,7 @@ package com.wang.wanandroidwithkotlin
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -20,6 +21,7 @@ import com.wang.wanandroidwithkotlin.databinding.FragmentHomeBinding
 import com.wang.wanandroidwithkotlin.plugin.suffix
 import com.wang.wanandroidwithkotlin.vm.Article
 import com.wang.wanandroidwithkotlin.vm.HomeViewModel
+import kotlinx.android.synthetic.main.fragment_home.*
 
 /**
  * Created by Koala on 2020/7/8.
@@ -31,7 +33,7 @@ typealias F = (Int) -> Boolean
 typealias H = (String) -> Boolean
 class HomeFragment : Fragment() {
 
-    lateinit var mutableLiveData:MutableLiveData<List<Article>>
+    lateinit var vm:HomeViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,17 +48,15 @@ class HomeFragment : Fragment() {
         )
         val articleList = listOf(Article("钢铁，病菌与枪炮"), Article("寂寞的游戏"))
 
-        mutableLiveData = MutableLiveData(articleList)
+        vm = ViewModelProvider(this).get(HomeViewModel::class.java)
 
-        mutableLiveData.observe(viewLifecycleOwner, Observer {
+        vm.list.value = articleList
+
+        binding.vm = vm
+
+        vm.list.observe(viewLifecycleOwner, Observer {
             binding.adapter?.submitList(it)
         })
-
-
-        val vm = ViewModelProvider(this).get(HomeViewModel::class.java)
-
-
-        binding.vm = HomeViewModel(mutableLiveData)
 
 //        testAlsoFun()
 
@@ -69,6 +69,11 @@ class HomeFragment : Fragment() {
 
         return binding.root
     }
+
+
+
+
+
     inner class ClickProxy(val fragment: HomeFragment){
 
 
@@ -87,7 +92,7 @@ class HomeFragment : Fragment() {
         }
 
         fun changeLiveData(){
-            mutableLiveData.value = listOf(Article("追风筝的人"), Article("爱你就像爱生命"))
+            vm.list.value = listOf(Article("追风筝的人"), Article("爱你就像爱生命"))
 
         }
     }
