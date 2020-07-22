@@ -46,12 +46,14 @@ class InnerTextView(mContext:Context,attributeSet: AttributeSet):androidx.appcom
             }
             MotionEvent.ACTION_UP ->
                 string = "up"
+            MotionEvent.ACTION_CANCEL ->
+                string = "cancel"
         }
 
-        Log.e(TAG, "dispatchTouchEvent$string")
+//        Log.e(TAG, "dispatchTouchEvent$string")
 
 
-        return false
+        return super.dispatchTouchEvent(event)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -67,9 +69,11 @@ class InnerTextView(mContext:Context,attributeSet: AttributeSet):androidx.appcom
                 string = "move"
             MotionEvent.ACTION_UP ->
                 string = "up"
+            MotionEvent.ACTION_CANCEL ->
+                string = "cancel"
         }
 
-        Log.e(TAG, "onTouchEvent$string")
+//        Log.e(TAG, "onTouchEvent$string")
 
         return super.onTouchEvent(event)
     }

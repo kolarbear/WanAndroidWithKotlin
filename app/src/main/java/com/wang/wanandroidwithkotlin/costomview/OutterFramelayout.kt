@@ -33,9 +33,11 @@ class OuterFrameLayout(mContext: Context,attributeSet: AttributeSet?) : FrameLay
                 string = "move"
             MotionEvent.ACTION_UP ->
                 string = "up"
+            MotionEvent.ACTION_CANCEL ->
+                string = "cancel"
         }
 
-        Log.e(TAG, "dispatchTouchEvent$string")
+//        Log.e(TAG, "dispatchTouchEvent$string")
 
         return super.dispatchTouchEvent(ev)
     }
@@ -50,9 +52,11 @@ class OuterFrameLayout(mContext: Context,attributeSet: AttributeSet?) : FrameLay
                 string = "move"
             MotionEvent.ACTION_UP ->
                 string = "up"
+            MotionEvent.ACTION_CANCEL ->
+                string = "cancel"
         }
 
-        Log.e(TAG, "onInterceptTouchEvent$string")
+//        Log.e(TAG, "onInterceptTouchEvent$string")
         return super.onInterceptTouchEvent(ev)
     }
 
@@ -68,9 +72,11 @@ class OuterFrameLayout(mContext: Context,attributeSet: AttributeSet?) : FrameLay
                 string = "move"
             MotionEvent.ACTION_UP ->
                 string = "up"
+            MotionEvent.ACTION_CANCEL ->
+                string = "cancel"
         }
 
-        Log.e(TAG, "onTouchEvent$string")
+//        Log.e(TAG, "onTouchEvent$string")
 
         return super.onTouchEvent(event)
     }

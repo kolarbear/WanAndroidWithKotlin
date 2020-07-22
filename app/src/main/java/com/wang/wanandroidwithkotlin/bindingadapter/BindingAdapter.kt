@@ -23,7 +23,6 @@ import com.wang.wanandroidwithkotlin.vm.Article
     recyclerView.adapter = adapter
 
     adapter.submitList(data.value)
-
 }
 
 @BindingAdapter(value = ["show"],requireAll = false)

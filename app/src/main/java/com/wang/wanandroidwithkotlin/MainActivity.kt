@@ -1,16 +1,17 @@
 package com.wang.wanandroidwithkotlin
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
-import android.view.View
-import com.wang.wanandroidwithkotlin.databinding.ActivityMainBinding
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil.setContentView
+import com.wang.wanandroidwithkotlin.databinding.ActivityMainBinding
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    val TAG = "MainActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,30 +23,45 @@ class MainActivity : AppCompatActivity() {
         listOf.filter(::isOdd)
     }
 
-    fun initTouchEvent(){
-
-
-
-       /* touch_event.setOnTouchListener(fun(_: View, motionEvent: MotionEvent): Boolean {
-            var string = ""
-            when (motionEvent.action) {
-                MotionEvent.ACTION_DOWN ->
-                    string = "down"
-                MotionEvent.ACTION_MOVE->
-                    string = "move"
-                MotionEvent.ACTION_UP ->
-                    string = "up"
-            }
-
-            Log.e("TextView", "setOnTouchListener$string")
-            return true
-        })*/
-
-        touch_event.setOnClickListener { Log.e("MainActivity","click") }
+    private fun initTouchEvent(){
+        touch_event.setOnClickListener { Log.e("MainActivity","click")
+            startActivity(Intent(this,SecondActivity::class.java))
+        }
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
+    override fun onStart() {
+        super.onStart()
+        Log.e(TAG, "onStart")
+    }
 
+    override fun onResume() {
+        super.onResume()
+        Log.e(TAG, "onResume")
+    }
+
+
+    override fun onPause() {
+        super.onPause()
+        Log.e(TAG, "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.e(TAG, "onStop")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.e(TAG, "onDestroy")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.e(TAG, "onRestart")
+    }
+
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
         var string = ""
         when (event?.action) {
             MotionEvent.ACTION_DOWN ->
@@ -54,6 +70,8 @@ class MainActivity : AppCompatActivity() {
                 string = "move"
             MotionEvent.ACTION_UP ->
                 string = "up"
+            MotionEvent.ACTION_CANCEL ->
+                string = "cancel"
         }
 
         Log.e("MainActivity", "onTouchEvent$string")
@@ -72,6 +90,8 @@ class MainActivity : AppCompatActivity() {
                 string = "move"
             MotionEvent.ACTION_UP ->
                 string = "up"
+            MotionEvent.ACTION_CANCEL ->
+                string = "cancel"
         }
 
         Log.e("MainActivity", "dispatchTouchEvent$string")
