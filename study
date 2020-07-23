@@ -677,6 +677,14 @@ Android 10新特性 及适配方案
  Android9.0与10.0分别更新了什么
 
  事件分发机制？
+  事件首先从activity中进行传递 -> PhoneWindow -> DecorView - > LinearLayout -> FrameLayout
+  -> ActionBarOverlayLayout(id: decor_content_parent) -> ContentFrameLayout(id: content)
+  -> 自己的XML布局
+  也就是最后会传入 ViewGroup中的 dispatchTouchEvent() 然后 在此方法中会调用到 onInterceptTouchEvent()方法
+  然后 会遍历 子View 寻找处理事件的View 也就是 mFirstTouchTarget 如果找到了处理事件的子View 那么就会赋值给mFirstTouchTarget
+  如果没有找到 那么mFirstTouchTarget就会为null 那么在之后的事件中 就会在dispatchTransformedTouchEvent中调用
+  super.dispatchTouchEvent()方法 至此 事件重新传递回上层 也就是Activity中。
+
 
  组件化模块间通信原理？
 
@@ -687,6 +695,9 @@ Android 10新特性 及适配方案
  三方库的底层实现？
 
  Kotlin实现静态方式？
+  伴生对象 component object
+  直接声明 object类
+  直接创建kt文件
 
  项目中有哪些性能优化？
 
