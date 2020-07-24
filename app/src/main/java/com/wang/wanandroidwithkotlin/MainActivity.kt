@@ -7,7 +7,11 @@ import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil.setContentView
 import com.wang.wanandroidwithkotlin.databinding.ActivityMainBinding
+import com.wang.wanandroidwithkotlin.event.TestMessageEvent
 import kotlinx.android.synthetic.main.activity_main.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,90 +20,28 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView<ActivityMainBinding>(this,R.layout.activity_main)
-        isOdd(3)
-
-        initTouchEvent()
-        val listOf = listOf(1, 2, 3)
-        listOf.filter(::isOdd)
-    }
-
-    private fun initTouchEvent(){
-        touch_event.setOnClickListener { Log.e("MainActivity","click")
-            startActivity(Intent(this,SecondActivity::class.java))
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.e(TAG, "onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.e(TAG, "onResume")
+        EventBus.getDefault().register(this)
     }
 
 
-    override fun onPause() {
-        super.onPause()
-        Log.e(TAG, "onPause")
+    @Subscribe
+    fun test2(test: TestMessageEvent){
+        Log.e(TAG,"This is just a test2")
     }
 
-    override fun onStop() {
-        super.onStop()
-        Log.e(TAG, "onStop")
+    @Subscribe(priority = 2)
+    fun testMessageEvent(test: TestMessageEvent){
+        Log.e(TAG,"This is just a test")
     }
+
+
+
+
 
     override fun onDestroy() {
+        EventBus.getDefault().unregister(this)
         super.onDestroy()
-        Log.e(TAG, "onDestroy")
     }
 
-    override fun onRestart() {
-        super.onRestart()
-        Log.e(TAG, "onRestart")
-    }
-
-
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        var string = ""
-        when (event?.action) {
-            MotionEvent.ACTION_DOWN ->
-                string = "down"
-            MotionEvent.ACTION_MOVE->
-                string = "move"
-            MotionEvent.ACTION_UP ->
-                string = "up"
-            MotionEvent.ACTION_CANCEL ->
-                string = "cancel"
-        }
-
-        Log.e("MainActivity", "onTouchEvent$string")
-
-        return super.onTouchEvent(event)
-    }
-
-
-    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-
-        var string = ""
-        when (ev?.action) {
-            MotionEvent.ACTION_DOWN ->
-                string = "down"
-            MotionEvent.ACTION_MOVE->
-                string = "move"
-            MotionEvent.ACTION_UP ->
-                string = "up"
-            MotionEvent.ACTION_CANCEL ->
-                string = "cancel"
-        }
-
-        Log.e("MainActivity", "dispatchTouchEvent$string")
-
-
-        return super.dispatchTouchEvent(ev)
-    }
-
-    fun isOdd(x:Int) = x%2!=0
 
 }

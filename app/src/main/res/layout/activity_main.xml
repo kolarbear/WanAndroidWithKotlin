@@ -7,28 +7,28 @@
 
     >
 
-    <com.wang.wanandroidwithkotlin.costomview.OuterFrameLayout
+    <FrameLayout
         android:id="@+id/parent"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         >
 
-      <!--  <fragment
+   <fragment
             android:id="@+id/nva_host"
             android:name="androidx.navigation.fragment.NavHostFragment"
             app:defaultNavHost="true"
             app:navGraph="@navigation/nav_host"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>-->
+            android:layout_height="match_parent"/>
 
-        <com.wang.wanandroidwithkotlin.costomview.InnerTextView
+       <!-- <com.wang.wanandroidwithkotlin.costomview.InnerTextView
             android:text="哈哈哈哈"
             android:gravity="center"
             android:id="@+id/touch_event"
             android:layout_marginTop="300dp"
             android:textColor="@color/colorAccent"
             android:layout_width="match_parent"
-            android:layout_height="50dp"/>
+            android:layout_height="50dp"/>-->
 
-    </com.wang.wanandroidwithkotlin.costomview.OuterFrameLayout>
+    </FrameLayout>
 </layout>

@@ -17,11 +17,13 @@ import androidx.navigation.fragment.findNavController
 
 import com.wang.wanandroidwithkotlin.adapter.HomeAdapter
 import com.wang.wanandroidwithkotlin.databinding.FragmentHomeBinding
+import com.wang.wanandroidwithkotlin.event.TestMessageEvent
 
 import com.wang.wanandroidwithkotlin.plugin.suffix
 import com.wang.wanandroidwithkotlin.vm.Article
 import com.wang.wanandroidwithkotlin.vm.HomeViewModel
 import kotlinx.android.synthetic.main.fragment_home.*
+import org.greenrobot.eventbus.EventBus
 
 /**
  * Created by Koala on 2020/7/8.
@@ -93,7 +95,7 @@ class HomeFragment : Fragment() {
 
         fun changeLiveData(){
             vm.list.value = listOf(Article("追风筝的人"), Article("爱你就像爱生命"))
-
+            EventBus.getDefault().post(TestMessageEvent())
         }
     }
 
